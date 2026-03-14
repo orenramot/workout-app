@@ -1,0 +1,55 @@
+<svg width="512" height="512" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="cc">
+      <circle cx="340" cy="340" r="238"/>
+    </clipPath>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#95D5B2"/>
+      <stop offset="100%" stop-color="#74C69D"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#52B788"/>
+      <stop offset="100%" stop-color="#40916C"/>
+    </linearGradient>
+    <linearGradient id="trail-grad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#E9EDC9"/>
+      <stop offset="100%" stop-color="#D4C5A9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="680" height="680" fill="#1B4332" rx="130"/>
+  <circle cx="340" cy="340" r="240" fill="none" stroke="#2D6A4F" stroke-width="8"/>
+
+  <g clip-path="url(#cc)">
+    <rect x="102" y="102" width="476" height="476" fill="url(#ground)"/>
+    <rect x="102" y="102" width="476" height="190" fill="url(#sky)"/>
+
+    <ellipse cx="260" cy="220" rx="55" ry="20" fill="#B7E4C7" opacity="0.6"/>
+    <ellipse cx="420" cy="200" rx="40" ry="15" fill="#B7E4C7" opacity="0.5"/>
+
+    <polygon points="148,360 185,268 222,360" fill="#1B4332"/>
+    <polygon points="162,360 200,255 238,360" fill="#2D6A4F"/>
+    <polygon points="148,335 190,240 232,335" fill="#1B4332"/>
+
+    <polygon points="450,345 483,258 516,345" fill="#1B4332"/>
+    <polygon points="462,345 498,245 534,345" fill="#2D6A4F"/>
+    <polygon points="448,322 488,232 528,322" fill="#1B4332"/>
+
+    <polygon points="270,330 298,268 326,330" fill="#2D6A4F"/>
+    <polygon points="278,330 306,258 334,330" fill="#1B4332"/>
+
+    <polygon points="370,325 394,270 418,325" fill="#2D6A4F"/>
+    <polygon points="364,325 390,260 416,325" fill="#1B4332"/>
+
+    <path d="M 210 580 C 230 558, 252 535, 268 508 C 282 483, 278 460, 292 438 C 306 416, 324 408, 332 388 C 338 372, 334 354, 337 338 C 339 324, 341 312, 340 300 L 348 300 C 349 312, 351 324, 353 338 C 356 354, 352 372, 358 388 C 366 408, 384 416, 398 438 C 412 460, 408 483, 422 508 C 438 535, 460 558, 480 580 Z" fill="url(#trail-grad)"/>
+
+    <path d="M 210 580 C 230 558 252 535 268 508 C 282 483 278 460 292 438 C 306 416 324 408 332 388 C 338 372 334 354 337 338 C 339 324 341 312 340 300" fill="none" stroke="#F1FAEE" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 480 580 C 460 558 438 535 422 508 C 408 483 412 460 398 438 C 384 416 366 408 358 388 C 352 372 356 354 353 338 C 351 324 349 312 348 300" fill="none" stroke="#F1FAEE" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+
+    <ellipse cx="295" cy="460" rx="12" ry="5" fill="#CCC5A0" opacity="0.5"/>
+    <ellipse cx="388" cy="430" rx="9" ry="4" fill="#CCC5A0" opacity="0.5"/>
+    <ellipse cx="310" cy="510" rx="14" ry="5" fill="#CCC5A0" opacity="0.4"/>
+  </g>
+
+  <circle cx="340" cy="340" r="238" fill="none" stroke="#52B788" stroke-width="5"/>
+</svg>
