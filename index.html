@@ -385,21 +385,7 @@
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAonf-OnKg54epQvGl-Zf5vtRMYqXUVrG4",
-  authDomain: "workout-app-oren.firebaseapp.com",
-  projectId: "workout-app-oren",
-  storageBucket: "workout-app-oren.firebasestorage.app",
-  messagingSenderId: "436594790429",
-  appId: "1:436594790429:web:c7ff797e0b540d84e936f4"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+<script>
 
 const exercises = {
   "שכיבות שמיכה":["משקל גוף","שכבי עם הפנים למטה, ידיים רחבות מהכתפיים.\nגוף ישר כמו קרש — לאורך כל התנועה.\nכפפי המרפקים והורידי את החזה עד קרוב לרצפה. דחפי חזרה.\n\n✅ ניתן להתחיל עם ברכיים על הרצפה.\n✅ נשפי בזמן הדחיפה למעלה.\n⚠️ לא לשבור את הגב התחתון."],
@@ -441,43 +427,16 @@ const plan = [
 ];
 
 const DAYS=['א','ב','ג','ד','ה','ו','ש'];
-let doneWorkouts = {};
-let history = [];
+let doneWorkouts = JSON.parse(localStorage.getItem('wo_done')||'{}');
+let history = JSON.parse(localStorage.getItem('wo_hist')||'[]');
 
-// Firebase refs
-const stateRef = doc(db, 'workout', 'state');
-const histRef = collection(db, 'history');
-
-// Sync indicator
-function setSynced(ok) {
-  document.getElementById('sync-dot').className = 'sync-dot' + (ok ? '' : ' offline');
-  document.getElementById('sync-text').textContent = ok ? 'מסונכרן בין כל המכשירים' : 'לא מחובר';
+function save() {
+  localStorage.setItem('wo_done', JSON.stringify(doneWorkouts));
+  localStorage.setItem('wo_hist', JSON.stringify(history));
 }
 
-// Listen to real-time changes
-onSnapshot(stateRef, (snap) => {
-  if (snap.exists()) {
-    doneWorkouts = snap.data().done || {};
-  } else {
-    doneWorkouts = {};
-  }
-  setSynced(true);
-  renderPlan();
-  renderTrack();
-}, () => setSynced(false));
-
-async function loadHistory() {
-  const q = query(histRef, orderBy('ts', 'desc'), limit(20));
-  const snap = await getDocs(q);
-  history = snap.docs.map(d => d.data());
-  renderTrack();
-}
-
-loadHistory();
-
-async function saveState() {
-  await setDoc(stateRef, { done: doneWorkouts });
-}
+document.getElementById('sync-dot').className = 'sync-dot';
+document.getElementById('sync-text').textContent = 'נשמר במכשיר זה';
 
 function renderPlan() {
   const c = document.getElementById('workouts');
@@ -526,19 +485,20 @@ window.toggle = function(i) {
   document.getElementById('arr-' + i).classList.toggle('open');
 };
 
-window.markDone = async function(i) {
+window.markDone = function(i) {
   if (doneWorkouts[i]) {
     delete doneWorkouts[i];
   } else {
     doneWorkouts[i] = Date.now();
-    await addDoc(histRef, {
+    history.unshift({
       name: plan[i].day + ' — ' + plan[i].type,
-      date: new Date().toLocaleDateString('he-IL'),
-      ts: Date.now()
+      date: new Date().toLocaleDateString('he-IL')
     });
-    await loadHistory();
+    if (history.length > 50) history.pop();
   }
-  await saveState();
+  save();
+  renderPlan();
+  renderTrack();
 };
 
 window.showEx = function(name) {
@@ -573,12 +533,15 @@ function renderTrack() {
   hl.innerHTML = history.slice(0, 15).map(h => `<div class="history-item"><span>${h.name}</span><div style="display:flex;align-items:center;gap:8px"><span class="hi-date">${h.date}</span><span class="hi-tag">✓</span></div></div>`).join('');
 }
 
-window.resetWeek = async function() {
+window.resetWeek = function() {
   if (!confirm('לאפס את סימוני השבוע? ההיסטוריה תישמר.')) return;
   doneWorkouts = {};
-  await saveState();
+  save();
+  renderPlan();
+  renderTrack();
 };
 
+window.showTab = function(t, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   ['plan', 'track', 'tips'].forEach(id => {
@@ -588,6 +551,9 @@ window.resetWeek = async function() {
   });
   if (t === 'track') renderTrack();
 };
+
+renderPlan();
+renderTrack();
 </script>
 </body>
 </html>
