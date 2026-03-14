@@ -256,6 +256,21 @@
     font-weight: 600;
   }
   .empty { text-align: center; padding: 32px; color: var(--text-light); font-size: 14px; }
+  .reset-btn {
+    width: 100%;
+    padding: 11px;
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--radius);
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    color: #b91c1c;
+    margin-bottom: 20px;
+    transition: background 0.15s;
+  }
+  .reset-btn:hover { background: #fef2f2; }
   .tip-card {
     background: var(--white);
     border-radius: var(--radius);
@@ -341,6 +356,7 @@
 
 <div id="tab-track" class="section pb" style="display:none">
   <div class="week-grid" id="week-grid"></div>
+  <button class="reset-btn" onclick="resetWeek()">איפוס שבוע — התחלת שבוע חדש</button>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-num" id="s-done">0</div><div class="stat-lbl">אימונים השבוע</div></div>
     <div class="stat-card"><div class="stat-num" id="s-streak">0</div><div class="stat-lbl">רצף ימים</div></div>
@@ -557,7 +573,12 @@ function renderTrack() {
   hl.innerHTML = history.slice(0, 15).map(h => `<div class="history-item"><span>${h.name}</span><div style="display:flex;align-items:center;gap:8px"><span class="hi-date">${h.date}</span><span class="hi-tag">✓</span></div></div>`).join('');
 }
 
-window.showTab = function(t, btn) {
+window.resetWeek = async function() {
+  if (!confirm('לאפס את סימוני השבוע? ההיסטוריה תישמר.')) return;
+  doneWorkouts = {};
+  await saveState();
+};
+
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   ['plan', 'track', 'tips'].forEach(id => {
