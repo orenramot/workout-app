@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="אימונים">
+<title>תוכנית האימונים שלי</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1B4332;
+    --green-mid: #2D6A4F;
+    --green: #40916C;
+    --green-light: #52B788;
+    --green-pale: #B7E4C7;
+    --green-ultra: #D8F3DC;
+    --green-bg: #F0FFF4;
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --text-light: #9ca3af;
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    --white: #ffffff;
+    --bg: #f9fafb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+    color: white;
+    padding: 24px 20px 20px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .header p { font-size: 13px; opacity: 0.75; }
+  .sync-status {
+    font-size: 11px;
+    margin-top: 6px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #86efac;
+    display: inline-block;
+  }
+  .sync-dot.offline { background: #fca5a5; }
+  .tabs {
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow);
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-family: 'Heebo', sans-serif;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .tab.active { color: var(--green-mid); border-bottom-color: var(--green-mid); }
+  .section { display: none; padding: 16px; max-width: 680px; margin: 0 auto; }
+  .section.active { display: block; }
+  .workout-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .workout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+  }
+  .workout-header:hover { background: var(--bg); }
+  .wh-left { display: flex; align-items: center; gap: 10px; }
+  .wh-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .badge-home { background: var(--green-ultra); color: var(--green-dark); }
+  .badge-out { background: #dbeafe; color: #1e3a8a; }
+  .badge-both { background: #fef3c7; color: #78350f; }
+  .wh-title { font-size: 15px; font-weight: 600; }
+  .wh-meta { font-size: 12px; color: var(--text-light); margin-top: 1px; }
+  .wh-right { display: flex; align-items: center; gap: 10px; }
+  .done-btn {
+    font-size: 12px;
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .done-btn:hover { border-color: var(--green-light); color: var(--green-mid); }
+  .done-btn.marked { background: var(--green-ultra); border-color: var(--green-pale); color: var(--green-dark); font-weight: 600; }
+  .chevron { font-size: 10px; color: var(--text-light); transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+  .workout-body { display: none; border-top: 1px solid var(--border-light); }
+  .workout-body.open { display: block; }
+  .section-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 16px 4px;
+  }
+  .ex-table { width: 100%; padding: 0 16px 12px; }
+  .ex-head {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 0.6fr 1fr;
+    gap: 8px;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ex-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 0.6fr 1fr;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border-light);
+    align-items: center;
+    font-size: 13px;
+  }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-name {
+    color: var(--green-mid);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--green-pale);
+    text-underline-offset: 2px;
+  }
+  .ex-name:hover { color: var(--green-dark); }
+  .ex-equip { color: var(--text-muted); font-size: 12px; }
+  .ex-sets { text-align: center; color: var(--text-muted); }
+  .ex-reps { text-align: left; color: var(--text); font-weight: 500; font-size: 12px; }
+  .rest-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    padding: 16px;
+    margin-bottom: 10px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .day-pill {
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--white);
+    transition: all 0.15s;
+  }
+  .day-pill.done { background: var(--green-ultra); border-color: var(--green-pale); }
+  .day-pill.rest { background: var(--border-light); cursor: default; }
+  .day-name { font-size: 11px; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
+  .day-check { font-size: 18px; line-height: 1; }
+  .day-pill.done .day-check { color: var(--green-mid); }
+  .day-pill.rest .day-check { color: var(--border); }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--green-mid); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .history-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .history-wrap {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 13px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .hi-date { font-size: 12px; color: var(--text-light); }
+  .hi-tag {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    background: var(--green-ultra);
+    color: var(--green-dark);
+    font-weight: 600;
+  }
+  .empty { text-align: center; padding: 32px; color: var(--text-light); font-size: 14px; }
+  .tip-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 10px;
+    border-right: 4px solid var(--green-light);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow);
+  }
+  .tip-title { font-size: 14px; font-weight: 700; margin-bottom: 5px; color: var(--green-dark); }
+  .tip-text { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .kegel-card {
+    background: var(--green-ultra);
+    border-radius: var(--radius);
+    border: 1px solid var(--green-pale);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .kegel-title { font-size: 14px; font-weight: 700; color: var(--green-dark); margin-bottom: 5px; }
+  .kegel-text { font-size: 13px; color: var(--green-mid); line-height: 1.65; }
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .modal .equip { display: inline-block; font-size: 12px; background: var(--border-light); border-radius: 20px; padding: 3px 12px; margin-bottom: 14px; color: var(--text-muted); font-weight: 600; }
+  .modal p { font-size: 14px; color: var(--text-muted); line-height: 1.75; white-space: pre-line; }
+  .modal-close {
+    margin-top: 18px;
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    color: var(--text);
+    transition: background 0.1s;
+  }
+  .modal-close:hover { background: var(--bg); }
+  .pb { padding-bottom: 24px; }
+  .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>תוכנית האימונים שלי 💪</h1>
+  <p>3-4 אימונים שבועיים | חיטוב + בניית שריר + רצפת אגן</p>
+  <div class="sync-status">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-text">מתחבר...</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('plan',this)">תוכנית</button>
+  <button class="tab" onclick="showTab('track',this)">מעקב</button>
+  <button class="tab" onclick="showTab('tips',this)">התמדה</button>
+</div>
+
+<div id="tab-plan" class="section active pb">
+  <div id="workouts"><div class="loading">טוען...</div></div>
+</div>
+
+<div id="tab-track" class="section pb" style="display:none">
+  <div class="week-grid" id="week-grid"></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="s-done">0</div><div class="stat-lbl">אימונים השבוע</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-streak">0</div><div class="stat-lbl">רצף ימים</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">סה"כ אימונים</div></div>
+  </div>
+  <div class="history-title">היסטוריה</div>
+  <div class="history-wrap" id="history-list"></div>
+</div>
+
+<div id="tab-tips" class="section pb" style="display:none">
+  <div class="tip-card"><div class="tip-title">כלל ה-2 דקות</div><div class="tip-text">אם את לא מרגישה בכושר לאימון מלא — בצעי רק 2 דקות. לרוב ממשיכים. ואם לא — 2 דקות זה עדיין ניצחון.</div></div>
+  <div class="tip-card"><div class="tip-title">הכיני מראש</div><div class="tip-text">שימי את בגדי הספורט מוכנים בלילה. הורידי את הציוד מהארון לפני השינה. פחות חיכוך — יותר סיכוי.</div></div>
+  <div class="tip-card"><div class="tip-title">אימון בבוקר לעומת ערב</div><div class="tip-text">מחקרים מראים שאימונים בבוקר נשמרים טוב יותר לאורך זמן. אבל — הזמן הכי טוב הוא הזמן שאת באמת עושה אותו.</div></div>
+  <div class="tip-card"><div class="tip-title">מוזיקה כטריגר</div><div class="tip-text">צרי פלייליסט קבוע לאימונים. עם הזמן הגוף לומד שכשמתנגנת המוזיקה — זה זמן לזוז.</div></div>
+  <div class="tip-card"><div class="tip-title">שחרור מהשלמות</div><div class="tip-text">החמצת אימון? הכלל: לעולם לא שני פעמים ברצף. אחד לפעמים — בסדר. שניים ברצף — מתחיל דפוס.</div></div>
+  <div class="tip-card"><div class="tip-title">תגמול קטן</div><div class="tip-text">קבעי לעצמך תגמול שבועי — קפה מיוחד, אמבטיה, סדרה — כשסיימת 3 אימונים. המוח אוהב תגמול.</div></div>
+  <div class="kegel-card"><div class="kegel-title">תזכורת יומית — קיגל 💛</div><div class="kegel-text">כווצי רצפת אגן 3×10 בכל יום — גם בימי מנוחה. אפשר בזמן צפייה בטלפון, בישיבה, בנהיגה. 3 דקות ביום שמשנות הכל.</div></div>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="m-title"></h3>
+    <span class="equip" id="m-equip"></span>
+    <p id="m-desc"></p>
+    <button class="modal-close" onclick="closeModal()">סגור</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBuS3eSuL5YFTwSxTqE1fYB11vb-chDYAU",
+  authDomain: "workout-app-oren.firebaseapp.com",
+  projectId: "workout-app-oren",
+  storageBucket: "workout-app-oren.firebasestorage.app",
+  messagingSenderId: "436594790429",
+  appId: "1:436594790429:web:c7ff797e0b540d84e936f4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const exercises = {
+  "שכיבות שמיכה":["משקל גוף","שכבי עם הפנים למטה, ידיים רחבות מהכתפיים.\nגוף ישר כמו קרש — לאורך כל התנועה.\nכפפי המרפקים והורידי את החזה עד קרוב לרצפה. דחפי חזרה.\n\n✅ ניתן להתחיל עם ברכיים על הרצפה.\n✅ נשפי בזמן הדחיפה למעלה.\n⚠️ לא לשבור את הגב התחתון."],
+  "TRX row":["TRX","אחזי ברצועות, נטי הגוף אחורה. משכי עצמך קדימה עם כיפוף המרפקים.\nהכניסי שכמות זו לזו בסוף התנועה.\n\n✅ ככל שתהי יותר שכובה — הקושי עולה.\n⚠️ שמרי על גוף ישר לאורך כל התנועה."],
+  "לחיצת כתפיים":["דאמבל 4 ק\"ג","עמדי עם דאמבל בגובה האוזניים. דחפי ידיים ישר למעלה. הורידי לאט.\n\n✅ נשפי בזמן הדחיפה למעלה.\n⚠️ אל תנעלי את המרפקים למעלה."],
+  "Bird-dog":["מזרן","על ארבע. הרימי יד ימין ורגל שמאל בו-זמנית. החזיקי 2 שניות. חזרי.\n\n✅ מעולה לליבה ורצפת האגן.\n⚠️ אל תסובבי את האגן."],
+  "Dead bug":["מזרן","שכיבה על הגב, ידיים למעלה, ברכיים בזווית 90°. הורידי יד ימין ורגל שמאל יחד מבלי לגעת ברצפה.\n\n✅ גב תחתון צמוד לרצפה לאורך כל התרגיל!\n⚠️ נשמי — לא לאחוז נשימה."],
+  "פלאנק על אמות":["מזרן","הישרי על האמות ועצות הרגליים. גוף ישר. שמרי.\n\n✅ התחילי מ-20 שניות ובני בהדרגה.\n⚠️ אל תרימי ואל תשפילי את הישבן."],
+  "גשר ישבן":["מזרן + גומייה","שכיבה על הגב, ברכיים כפופות. הרימי ישבן עד קו ישר. כווצי בחוזקה. הורידי לאט.\n\n✅ עם גומייה מעל הברכיים — מוסיף אתגר.\n⚠️ אל תתכופפי בגב התחתון."],
+  "סייד-סטפ עם גומייה":["גומייה","גומייה מעל הברכיים, ברכיים קלות כפופות. צעדי הצידה 2 ימינה + 2 שמאלה.\n\n✅ מעולה לחיצוני הירך.\n⚠️ גב ישר, לא להתכופף."],
+  "לאנג' קדמי":["משקולות 2.5 ק\"ג","צעדי קדימה, כפפי שתי ברכיים ל-90°. הברך האחורית כמעט נוגעת ברצפה. דחפי חזרה.\n\n✅ ברך קדמית לא תחצה את קצה האצבעות."],
+  "עמידה על רגל אחת":["פיתה שיווי משקל","עמדי על הפיתה על רגל אחת. שמרי יציבות 30 שניות.\n\n✅ עיניים פקוחות בהתחלה — אחר כך סגורות לקושי.\n⚠️ עמדי ליד קיר בהתחלה לביטחון."],
+  "חבל קפיצה":["חבל קפיצה","קפצי בקצב נוח ורציף. קפיצות דו-רגליות בסיסיות.\n\n✅ התחילי מ-30 שניות ובני בהדרגה.\n⚠️ קפיצות נמוכות וקצביות — לא גבוהות."],
+  "סקוואט + לחיצת כתפיים":["דאמבל 4 ק\"ג","דאמבל בגובה כתפיים. סקוואט עד 90°. כשעולה — דחפי דאמבל למעלה.\n\n✅ תרגיל לכל הגוף.\n⚠️ נשפי כשאת דוחפת למעלה."],
+  "פלאנק עם הרמת יד":["מזרן","פלאנק מלא. הרימי יד אחת קדימה, שמרי שנייה, החזירי. עברי צד.\n\n✅ מחזק ליבה ויציבות הכתף.\n⚠️ שמרי אגן יציב — לא לנדנד."],
+  "Mountain climber איטי":["מזרן","פלאנק מלא. משכי ברך לחזה לאט, החזירי. עברי צד.\n\n✅ בצורה איטית — מחזק ליבה ללא לחץ תוך-בטני.\n⚠️ גב ישר, לא תרימי ישבן."],
+  "Sun Salutation A":["מזרן","עמידה → הרמת ידיים → כפיפה קדמית → לוח → כלב למטה → קוברה → כלב למטה → עמידה.\n\n✅ בצעי לאט עם נשימה מלאה בכל תנועה.\n⚠️ בקוברה — לא לדחוס גב תחתון."],
+  "Warrior I + II":["מזרן","Warrior I: רגל קדמית 90°, רגל אחורית ישרה, ידיים למעלה.\nWarrior II: ידיים פתוחות לצדדים.\n\n✅ 5 נשימות עמוקות בכל עמדה."],
+  "Butterfly — פרפר":["מזרן","שבי עם כפות רגליים נוגעות. ברכיים נופלות הצידה. כופפי קלות קדימה. 3-5 דקות.\n\n✅ פותח מפשעה ואגן — מעולה לרצפת האגן.\n⚠️ לא לדחוף ברכיים למטה בכוח."],
+  "Dragon — דרקון":["מזרן","לאנג' עמוק קדימה. יד קדמית על המזרן. הרשי לאגן לשקוע. 3-5 דקות כל צד.\n\n✅ מתיחה עמוקה של היפ פלקסור.\n⚠️ נשמי עמוק ואל תיאבקי עם הגוף."],
+  "Sleeping Swan — ברבור":["מזרן","מכלב למטה: הכניסי רגל קדימה בזווית, שכבי מעל הרגל. 5 דקות כל צד.\n\n✅ מתיחה עמוקה של הפיריפורמיס.\n⚠️ קפלי שמיכה מתחת לירך אם יש אי נוחות."],
+  "Caterpillar — זחל":["מזרן","שבי עם רגליים ישרות. כופפי לאט קדימה, הרשי לגב להתעגל. 5 דקות.\n\n✅ מתיחה עמוקה של עמוד השדרה.\n⚠️ תני לגוף לרדת בקצבו."],
+  "Supine Twist — פיתול שכיבה":["מזרן","שכיבה על הגב. ברך לחזה והצידה. ידיים פתוחות. 2-3 דקות כל צד.\n\n✅ משחרר גב תחתון.\n⚠️ שתי כתפיים נשארות על הרצפה."],
+  "Happy Baby":["מזרן","שכיבה על הגב. ברכיים לחזה. אחזי בכפות הרגליים. פתחי ברכיים לצדדים. 2 דקות.\n\n✅ פותח אגן ומרגיע גב תחתון."],
+  "גלגול גליל":["גליל","גלגלי לאט על השריר הרצוי. כשמוצאת נקודה כואבת — עצרי 20-30 שניות.\n\n✅ מעולה אחרי כל אימון כוח.\n⚠️ לא לגלגל על מפרקים."],
+  "קיגל":["ללא","כווצי רצפת אגן כלפי מעלה ופנימה. 3 שניות כיווץ + 3 שניות שחרור.\n\n✅ ניתן בכל עמדה — שכיבה, ישיבה, עמידה.\n⚠️ רק רצפת אגן — לא בטן, ירכיים או ישבן."],
+  "הליכה מהירה":["—","צעדי בקצב שמאיץ את פעימות הלב. ידיים נעות קדימה-אחורה.\n\n✅ קצב שבו ניתן לדבר אבל לא לשיר."],
+  "Movement חופשי":["מוזיקה","שימי מוזיקה שאת אוהבת. תני לגוף לנוע בלי כללים.\n\n✅ לא יופי — כיף!\n✅ חימום מעולה לגוף ולנפש."],
+};
+
+const plan = [
+  {day:"יום 1",type:"כוח + Movement",loc:"בבית",dur:"35",badge:"badge-home",sections:[{name:"חימום",exs:[["Movement חופשי","מוזיקה","1","5 דק׳"]]},{name:"עיקרי",exs:[["שכיבות שמיכה","משקל גוף","3","10-12"],["TRX row","TRX","3","12"],["לחיצת כתפיים","דאמבל 4 ק\"ג","3","12"],["Bird-dog","מזרן","3","10 כ״צ"],["Dead bug","מזרן","3","8 כ״צ"],["פלאנק על אמות","מזרן","3","25 שנ׳"]]},{name:"קול-דאון",exs:[["Butterfly — פרפר","מזרן","1","3 דק׳"],["Supine Twist — פיתול שכיבה","מזרן","1","2 דק׳ כ״צ"]]},{name:"קיגל",exs:[["קיגל","ללא","3","10 כיווצים"]]}]},
+  {day:"יום 2",type:"Vinyasa Flow",loc:"בבית / חוץ",dur:"40",badge:"badge-both",sections:[{name:"רצף",exs:[["Sun Salutation A","מזרן","5","סבבים"],["Warrior I + II","מזרן","1","5 נשימות כ״צ"],["Butterfly — פרפר","מזרן","1","3 דק׳"],["Happy Baby","מזרן","1","2 דק׳"],["Supine Twist — פיתול שכיבה","מזרן","1","2 דק׳ כ״צ"]]},{name:"קיגל",exs:[["קיגל","ללא","2","10 כיווצים"]]}]},
+  {day:"יום 3",type:"כוח פלג תחתון + קרדיו",loc:"חוץ",dur:"40",badge:"badge-out",sections:[{name:"חימום",exs:[["הליכה מהירה","—","1","5 דק׳"]]},{name:"עיקרי",exs:[["חבל קפיצה","חבל קפיצה","1","8 דק׳"],["לאנג' קדמי","משקולות 2.5 ק\"ג","3","10 כ״צ"],["גשר ישבן","מזרן + גומייה","3","15"],["סייד-סטפ עם גומייה","גומייה","3","15 כ״צ"],["עמידה על רגל אחת","פיתה","3","30 שנ׳ כ״צ"]]},{name:"קול-דאון",exs:[["גלגול גליל","גליל","1","5 דק׳"]]},{name:"קיגל",exs:[["קיגל","ללא","3","10 כיווצים"]]}]},
+  {day:"יום 4",type:"מנוחה 😴",loc:"—",dur:"—",badge:"",rest:true},
+  {day:"יום 5",type:"Full Body Flow + כוח",loc:"בבית",dur:"40",badge:"badge-home",sections:[{name:"חימום",exs:[["חבל קפיצה","חבל קפיצה","1","3 דק׳ קל"]]},{name:"Circuit × 3",exs:[["חבל קפיצה","חבל קפיצה","3","40 שנ׳"],["סקוואט + לחיצת כתפיים","דאמבל 4 ק\"ג","3","12"],["TRX row","TRX","3","12"],["גשר ישבן","מזרן + גומייה","3","15"],["פלאנק עם הרמת יד","מזרן","3","8 כ״צ"],["Mountain climber איטי","מזרן","3","20 שנ׳"]]},{name:"קיגל",exs:[["קיגל","ללא","3","10 כיווצים"]]}]},
+  {day:"יום 6",type:"Yin + Movement",loc:"בבית",dur:"35",badge:"badge-home",sections:[{name:"Movement",exs:[["Movement חופשי","מוזיקה","1","10 דק׳"]]},{name:"Yin",exs:[["Butterfly — פרפר","מזרן","1","5 דק׳"],["Dragon — דרקון","מזרן","1","5 דק׳ כ״צ"],["Sleeping Swan — ברבור","מזרן","1","5 דק׳ כ״צ"],["Caterpillar — זחל","מזרן","1","5 דק׳"],["Supine Twist — פיתול שכיבה","מזרן","1","3 דק׳ כ״צ"]]},{name:"קיגל",exs:[["קיגל","ללא","3","5 מהיר + 5 איטי"]]}]},
+  {day:"יום 7",type:"מנוחה מלאה 😴",loc:"—",dur:"—",badge:"",rest:true},
+];
+
+const DAYS=['א','ב','ג','ד','ה','ו','ש'];
+let doneWorkouts = {};
+let history = [];
+
+// Firebase refs
+const stateRef = doc(db, 'workout', 'state');
+const histRef = collection(db, 'history');
+
+// Sync indicator
+function setSynced(ok) {
+  document.getElementById('sync-dot').className = 'sync-dot' + (ok ? '' : ' offline');
+  document.getElementById('sync-text').textContent = ok ? 'מסונכרן בין כל המכשירים' : 'לא מחובר';
+}
+
+// Listen to real-time changes
+onSnapshot(stateRef, (snap) => {
+  if (snap.exists()) {
+    doneWorkouts = snap.data().done || {};
+  } else {
+    doneWorkouts = {};
+  }
+  setSynced(true);
+  renderPlan();
+  renderTrack();
+}, () => setSynced(false));
+
+async function loadHistory() {
+  const q = query(histRef, orderBy('ts', 'desc'), limit(20));
+  const snap = await getDocs(q);
+  history = snap.docs.map(d => d.data());
+  renderTrack();
+}
+
+loadHistory();
+
+async function saveState() {
+  await setDoc(stateRef, { done: doneWorkouts });
+}
+
+function renderPlan() {
+  const c = document.getElementById('workouts');
+  c.innerHTML = '';
+  plan.forEach((w, i) => {
+    if (w.rest) {
+      c.innerHTML += `<div class="rest-card">${w.day} — ${w.type}</div>`;
+      return;
+    }
+    const done = !!doneWorkouts[i];
+    const sections = w.sections.map(s => `
+      <div class="section-tag">${s.name}</div>
+      ${s.exs.map(e => `<div class="ex-row">
+        <span class="ex-name" onclick="showEx('${e[0].replace(/'/g, "\\'")}')">${e[0]}</span>
+        <span class="ex-equip">${e[1]}</span>
+        <span class="ex-sets">${e[2]}</span>
+        <span class="ex-reps">${e[3]}</span>
+      </div>`).join('')}
+    `).join('');
+    c.innerHTML += `<div class="workout-card">
+      <div class="workout-header" onclick="toggle(${i})">
+        <div class="wh-left">
+          <span class="wh-badge ${w.badge}">${w.loc}</span>
+          <div>
+            <div class="wh-title">${w.day} — ${w.type}</div>
+            <div class="wh-meta">${w.dur} דק׳</div>
+          </div>
+        </div>
+        <div class="wh-right">
+          <button class="done-btn ${done ? 'marked' : ''}" onclick="event.stopPropagation();markDone(${i})">${done ? '✓ בוצע' : 'סמני כבוצע'}</button>
+          <span class="chevron" id="arr-${i}">▼</span>
+        </div>
+      </div>
+      <div class="workout-body" id="body-${i}">
+        <div class="ex-table">
+          <div class="ex-head"><span>תרגיל</span><span>ציוד</span><span style="text-align:center">סטים</span><span style="text-align:left">חזרות</span></div>
+          ${sections}
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+window.toggle = function(i) {
+  document.getElementById('body-' + i).classList.toggle('open');
+  document.getElementById('arr-' + i).classList.toggle('open');
+};
+
+window.markDone = async function(i) {
+  if (doneWorkouts[i]) {
+    delete doneWorkouts[i];
+  } else {
+    doneWorkouts[i] = Date.now();
+    await addDoc(histRef, {
+      name: plan[i].day + ' — ' + plan[i].type,
+      date: new Date().toLocaleDateString('he-IL'),
+      ts: Date.now()
+    });
+    await loadHistory();
+  }
+  await saveState();
+};
+
+window.showEx = function(name) {
+  const info = exercises[name];
+  if (!info) return;
+  document.getElementById('m-title').textContent = name;
+  document.getElementById('m-equip').textContent = 'ציוד: ' + info[0];
+  document.getElementById('m-desc').textContent = info[1];
+  document.getElementById('modal').classList.add('open');
+};
+
+window.closeModal = function() {
+  document.getElementById('modal').classList.remove('open');
+};
+
+function renderTrack() {
+  const done = Object.keys(doneWorkouts).length;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-streak').textContent = done;
+  document.getElementById('s-total').textContent = history.length;
+  const g = document.getElementById('week-grid');
+  g.innerHTML = DAYS.map((d, i) => {
+    const isRest = i === 3 || i === 6;
+    const isDone = !!doneWorkouts[i];
+    return `<div class="day-pill ${isRest ? 'rest' : isDone ? 'done' : ''}">
+      <div class="day-name">${d}׳</div>
+      <div class="day-check">${isRest ? '—' : isDone ? '✓' : '○'}</div>
+    </div>`;
+  }).join('');
+  const hl = document.getElementById('history-list');
+  if (!history.length) { hl.innerHTML = '<div class="empty">עדיין אין אימונים מסומנים</div>'; return; }
+  hl.innerHTML = history.slice(0, 15).map(h => `<div class="history-item"><span>${h.name}</span><div style="display:flex;align-items:center;gap:8px"><span class="hi-date">${h.date}</span><span class="hi-tag">✓</span></div></div>`).join('');
+}
+
+window.showTab = function(t, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['plan', 'track', 'tips'].forEach(id => {
+    const el = document.getElementById('tab-' + id);
+    el.style.display = id === t ? 'block' : 'none';
+    el.classList.toggle('active', id === t);
+  });
+  if (t === 'track') renderTrack();
+};
+</script>
+</body>
+</html>
